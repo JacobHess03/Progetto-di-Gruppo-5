@@ -23,7 +23,8 @@ Un'applicazione Python per la gestione di un registro studenti con salvataggio p
 Installa il pacchetto necessario con:
 
 ```bash
-pip install mysql-connector-python 
+pip install mysql-connector-python
+```
 
 ⚙️ Struttura del progetto
 ```
@@ -36,7 +37,7 @@ pip install mysql-connector-python
     Register - classe per gestire l’intero registro
 
     create() - funzione che crea le tabelle nel database se non esistono
-
+```
 🗃️ Database
 
 Il progetto utilizza un database MySQL denominato StudentsRegister con due tabelle:
