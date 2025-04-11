@@ -23,10 +23,10 @@ Un'applicazione Python per la gestione di un registro studenti con salvataggio p
 Installa il pacchetto necessario con:
 
 ```bash
-pip install mysql-connector-python
+pip install mysql-connector-python 
 
 ⚙️ Struttura del progetto
-
+```
     main.py - punto di ingresso principale del programma
 
     DBconnection.py - modulo per la connessione al database MySQL
@@ -40,20 +40,20 @@ pip install mysql-connector-python
 🗃️ Database
 
 Il progetto utilizza un database MySQL denominato StudentsRegister con due tabelle:
-
+```
     studenti: contiene id, nome, cognome
 
     voti: contiene id, studente_id, materia, voto
-
+```
 La relazione è 1:N tra studenti e voti.
 🖥️ Avvio
 
 Per eseguire il programma:
-
+```
 python main.py
-
+```
 Durante l'esecuzione, ti verrà mostrato un menu interattivo:
-
+```
 --- Menu ---
  1) Visualizza studenti
  2) Aggiungi studenti
@@ -66,11 +66,11 @@ Durante l'esecuzione, ti verrà mostrato un menu interattivo:
  9) Stampa voti di uno studente
 10) Modifica un voto specifico
 11) Esci
-
+```
 📌 Esempio connessione MySQL
 
 Nel file DBconnection.py, assicurati di avere qualcosa del genere (con i tuoi dati):
-
+```
 import mysql.connector
 
 def db_connection(database=None):
@@ -80,3 +80,4 @@ def db_connection(database=None):
         password="la_tua_password",
         database=database
     )
+```
