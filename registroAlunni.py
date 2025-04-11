@@ -169,33 +169,10 @@ class Register():
         self.student[student_id] = nuovo
         print("Studente aggiunto con successo!\n")
 
-    def med_of_class(self):
-        """Calcola la media generale della classe"""
-        total = count = 0
-        for studente in self.student.values():
-            total += studente.med_all_vote()
-            count += 1
-            
-        if count == 0:
-            print("Nessuno studente nel registro.")
-        else:
-            print(f"Media generale della classe: {round(total / count, 2)}\n")
 
-    def best_student(self):
-        """Trova lo studente con la media più alta"""
-        best = None
-        best_media = -1
-        
-        for studente in self.student.values():
-            media = studente.med_all_vote()
-            if media > best_media:
-                best = studente
-                best_media = media
-                
-        if best:
-            print(f"Miglior studente: {best.name} {best.surname} con media {best_media}\n")
-        else:
-            print("Nessuno studente disponibile.\n")
+
+ 
+    
     
     def delete_student(self):
         """Elimina uno studente dal registro"""
@@ -224,26 +201,134 @@ class Register():
             if conn.is_connected():
                 cursor.close()
                 conn.close()
-      
+                
+    
+    
+    def modify_student_vote(self):
+        """Modifica un voto specifico per uno studente"""
+
+        student_id = int(input("Inserisci l'ID dello studente: "))
+
+        if student_id not in self.student:
+            print("Studente non presente.")
+            return
+
+        materia = input("Inserisci la materia del voto da modificare: ").strip()
+
+        try:
+            conn = DBconnection.db_connection(dbName)
+            cursor = conn.cursor()
+
+            # Recupera i voti per la materia specifica
+            cursor.execute("""
+                SELECT id, voto FROM voti
+                WHERE studente_id = %s AND materia = %s
+            """, (student_id, materia))
+            voti = cursor.fetchall()
+
+            if not voti:
+                print(f"Nessun voto trovato per la materia {materia}.")
+                return
+
+            print(f"Voti trovati per {materia}:")
+            for voto_id, voto in voti:
+                print(f"ID Voto: {voto_id} - Voto: {voto}")
+
+            voto_id_modifica = int(input("Inserisci l'ID del voto da modificare: "))
+            nuovo_voto = float(input("Inserisci il nuovo voto: "))
+
+            # Modifica il voto selezionato
+            cursor.execute("""
+                UPDATE voti
+                SET voto = %s
+                WHERE id = %s AND studente_id = %s
+            """, (nuovo_voto, voto_id_modifica, student_id))
+
+            conn.commit()
+            print(f"Voto con ID {voto_id_modifica} aggiornato a {nuovo_voto}.")
+
+            # Aggiorna i voti anche nel dizionario in memoria
+            self.student[student_id].votes = self.student[student_id].load_votes()
+
+        except Exception as e:
+            print("Errore durante la modifica del voto:", e)
+
+        finally:
+            if conn.is_connected():
+                cursor.close()
+                conn.close()
+
+    
+    
+    
+    
+    
+    
+    
+                
+    def modify_student(self):
+        """Modifica nome e cognome di uno studente"""
+
+        student_id = int(input("Inserisci l'ID dello studente da modificare: "))
+
+        if student_id not in self.student:
+            print("Studente non presente.")
+            return
+
+        nuovo_nome = input("Inserisci il nuovo nome: ").strip()
+        nuovo_cognome = input("Inserisci il nuovo cognome: ").strip()
+
+        try:
+            conn = DBconnection.db_connection(dbName)
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                UPDATE studenti
+                SET nome = %s, cognome = %s
+                WHERE id = %s
+            """, (nuovo_nome, nuovo_cognome, student_id))
+            conn.commit()
+
+            # Aggiorna anche il dizionario in memoria
+            self.student[student_id].name = nuovo_nome
+            self.student[student_id].surname = nuovo_cognome
+
+            print(f"Studente con ID {student_id} modificato correttamente.")
+
+        except Exception as e:
+            print("Errore durante la modifica:", e)
+
+        finally:
+            if conn.is_connected():
+                cursor.close()
+                conn.close()
+
     def print_all_student(self):
-        """Stampa tutti gli studenti nel registro"""
-        conn = DBconnection.db_connection(dbName)
-        cursor = conn.cursor()
+        for studente in self.student.values():
+            studente.print_info()    
+      
+    # def print_all_student(self):
         
-        conn.commit()
-        query = "SELECT * FROM studenti"
-        cursor.execute(query)
-        result = cursor.fetchall()
+    #     """Stampa tutti gli studenti nel registro"""
+    #     conn = DBconnection.db_connection(dbName)
+    #     cursor = conn.cursor()
         
-        for row in result:
-            print(row)
+    #     conn.commit()
+    #     query = """select studenti.nome, studenti.cognome, voti.materia, voti.voto 
+    #             from studenti
+    #             join voti on studenti.id = voti.studente_id
+    #             order by voti.materia"""
+    #     cursor.execute(query)
+    #     result = cursor.fetchall()
+        
+    #     for row in result:
+    #         print(row)
             
-        conn.close()
+    #     conn.close()
 
 
 def main():
     """Funzione principale che gestisce il menu"""
-    # Crea un'istanza del registro studenti
     register = Register()
 
     while True:
@@ -251,12 +336,14 @@ def main():
             ch = int(input(
                 "\n--- Menu ---\n"
                 " 1) Visualizza studenti\n"
-                " 2) Aggiungi studenti\n"
-                " 3) Aggiungi 1 voto per materia a uno studente\n"
-                " 4) Aggiungi voto per specifica materia\n"
-                " 5) Miglior studente\n"
-                " 6) Elimina studente\n"
-                " 7) Esci\n"
+                " 2) Aggiungi studente\n"
+                " 3) Aggiungi tutti i voti a uno studente\n"
+                " 4) Aggiungi voto singolo a uno studente\n"
+
+                " 5) Elimina studente\n"
+                " 6) Modifica nome/cognome studente\n"
+                " 7) Modifica voto\n"
+                " 8) Esci\n"
                 " ---> "
             ))
         except ValueError:
@@ -280,19 +367,22 @@ def main():
                     register.student[stud_id].add_one_valutation()
                 else:
                     print("Studente non trovato.")
+
             case 5:
-                register.best_student()
-            case 6:
                 register.delete_student()
+            case 6:
+                register.modify_student()
             case 7:
+                register.modify_student_vote()
+            case 8:
                 print("Uscita dal programma...")
                 break
             case _:
                 print("Scelta non valida.")
 
-        # Chiede all'utente se vuole tornare al menu
         if input("Vuoi tornare al menu? (s/n) ---> ").strip().lower() == "n":
             break
+
 
 # Crea le tabelle e avvia il programma
 create()
